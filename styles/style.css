@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>금속 평철 난간 생성기</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+    }
+    #controls {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    input {
+      margin: 5px;
+      padding: 5px;
+      width: 120px;
+    }
+    button {
+      padding: 5px 10px;
+      margin-top: 5px;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label>난간 높이 (cm):</label><br>
+    <input type="number" id="height" value="100"><br>
+    <label>난간 길이 (cm):</label><br>
+    <input type="number" id="length" value="200"><br>
+    <button onclick="generateRail()">난간 생성</button>
+  </div>
+  <canvas id="three-canvas"></canvas>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+  <script>
+    // 기본 설정
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.set(0, 100, 400);
+
+    // 조명
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(0, 200, 200);
+    scene.add(light);
+
+    const ambient = new THREE.AmbientLight(0x404040); // 부드러운 주변광
+    scene.add(ambient);
+
+    // 바닥
+    const floorGeometry = new THREE.PlaneGeometry(1000, 1000);
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // 난간 생성 함수
+    function generateRail() {
+      const height = parseFloat(document.getElementById('height').value);
+      const length = parseFloat(document.getElementById('length').value);
+
+      // 기존 난간 제거
+      scene.traverse(obj => {
+        if (obj.userData.isRail) scene.remove(obj);
+      });
+
+      // 평철 난간 바디
+      const railGeometry = new THREE.BoxGeometry(length, height, 5); // 두께 5cm
+      const railMaterial = new THREE.MeshStandardMaterial({
+        color: 0x555555,
+        metalness: 0.8,
+        roughness: 0.3
+      });
+      const rail = new THREE.Mesh(railGeometry, railMaterial);
+      rail.position.set(0, height / 2, 0);
+      rail.userData.isRail = true;
+      scene.add(rail);
+    }
+
+    // 초기 렌더링
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>0
