@@ -1,104 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>금속 평철 난간 생성기</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-      background-color: #f0f0f0;
-    }
-    #controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-    input {
-      margin: 5px;
-      padding: 5px;
-      width: 120px;
-    }
-    button {
-      padding: 5px 10px;
-      margin-top: 5px;
-    }
-    canvas {
-      display: block;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>평철 계단난간 3D 생성기</title>
+<style>
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:Arial,sans-serif;background:#eef1f4}
+#panel{position:fixed;z-index:5;top:12px;left:12px;width:250px;background:#fff;padding:14px;border-radius:12px;box-shadow:0 3px 15px #0003}
+h2{font-size:17px;margin:0 0 12px}label{display:block;font-size:13px;margin:8px 0 3px;color:#444}
+input{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}button{width:100%;margin-top:10px;padding:9px;border:0;border-radius:7px;background:#333;color:white;font-weight:bold}
+#msg{font-size:12px;color:#666;margin-top:9px}#loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
+</style>
 </head>
 <body>
-  <div id="controls">
-    <label>난간 높이 (cm):</label><br>
-    <input type="number" id="height" value="100"><br>
-    <label>난간 길이 (cm):</label><br>
-    <input type="number" id="length" value="200"><br>
-    <button onclick="generateRail()">난간 생성</button>
-  </div>
-  <canvas id="three-canvas"></canvas>
-
-  <!-- Three.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-
-  <script>
-    // 기본 설정
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.position.set(0, 100, 400);
-
-    // 조명
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(0, 200, 200);
-    scene.add(light);
-
-    const ambient = new THREE.AmbientLight(0x404040); // 부드러운 주변광
-    scene.add(ambient);
-
-    // 바닥
-    const floorGeometry = new THREE.PlaneGeometry(1000, 1000);
-    const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
-
-    // 난간 생성 함수
-    function generateRail() {
-      const height = parseFloat(document.getElementById('height').value);
-      const length = parseFloat(document.getElementById('length').value);
-
-      // 기존 난간 제거
-      scene.traverse(obj => {
-        if (obj.userData.isRail) scene.remove(obj);
-      });
-
-      // 평철 난간 바디
-      const railGeometry = new THREE.BoxGeometry(length, height, 5); // 두께 5cm
-      const railMaterial = new THREE.MeshStandardMaterial({
-        color: 0x555555,
-        metalness: 0.8,
-        roughness: 0.3
-      });
-      const rail = new THREE.Mesh(railGeometry, railMaterial);
-      rail.position.set(0, height / 2, 0);
-      rail.userData.isRail = true;
-      scene.add(rail);
-    }
-
-    // 초기 렌더링
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
-  </script>
-</body>
-</html>0
+<div id="loading">3D 화면을 준비하는 중...</div>
+<div id="panel">
+<h2>금속 평철 계단난간</h2>
+<label>계단 높이 (cm)</label><input id="rise" type="number" value="180">
+<label>계단 길이 (cm)</label><input id="run" type="number" value="300">
+<label>난간 높이 (cm)</label><input id="rh" type="number" value="100">
+<label>평철 두께 (mm)</label><input id="th" type="number" value="5">
+<button id="make">난간 생성</button>
+<div id="msg">값을 바꾸고 난간 생성을 눌러주세요.</div>
+</div>
+<div id="app"></div>
+<script>
+(function(){
+function add(src,done){var s=document.createElement('script');s.src=src;s.onload=done;s.onerror=done;document.head.appendChild(s)}
+function boot(){
+ if(!window.THREE){document.getElementById('loading').textContent='3D 라이브러리를 불러오지 못했습니다. 인터넷 연결 후 새로고침하세요.';return}
+ var T=THREE,scene=new T.Scene();scene.background=new T.Color(0xeef1f4);
+ var cam=new T.PerspectiveCamera(45,innerWidth/innerHeight,.1,5000);
+ var ren=new T.WebGLRenderer({antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(innerWidth,innerHeight);document.getElementById('app').appendChild(ren.domElement);
+ scene.add(new T.HemisphereLight(0xffffff,0x666666,2));var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
+ var objects=new T.Group();scene.add(objects);
+ var floor=new T.Mesh(new T.PlaneGeometry(1500,1500),new T.MeshStandardMaterial({color:0xd7d9dc}));floor.rotation.x=-Math.PI/2;scene.add(floor);
+ function box(x,y,z,px,py,pz,mat){var m=new T.Mesh(new T.BoxGeometry(x,y,z),mat);m.position.set(px,py,pz);objects.add(m);return m}
+ function make(){
+   while(objects.children.length)objects.remove(objects.children[0]);
+   var H=+rise.value||180,L=+run.value||300,R=+rh.value||100,th=+document.getElementById('th').value||5;
+   var n=10,sh=H/n,sw=L/n,metal=new T.MeshStandardMaterial({color:0x55585c,metalness:.8,roughness:.3}),stepmat=new T.MeshStandardMaterial({color:0x303236,metalness:.5,roughness:.4});
+   for(var i=0;i<n;i++)box(sw,sh,45,sw*(i+.5),sh*(i+.5),0,stepmat);
+   var len=Math.sqrt(L*L+H*H),ang=Math.atan2(H,L);
+   var rail=box(len,th/10,th/10,L/2,sh+H/2+R/2,0,metal);rail.rotation.z=ang;
+   for(var j=0;j<5;j++){var x=L*j/4,y=sh+H*j/4+R/2;box(th/10,R,th/10,x,y,0,metal)}
+   cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.5);cam.lookAt(L/2,H/2,0);
+ }
+ document.getElementById('make').onclick=make;addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+ document.getElementById('loading').style.display='none';make();
+ (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
+}
+add('https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js',function(){if(window.THREE)boot();else add('https://unpkg.com/three@0.152.2/build/three.min.js',boot)})
+})();
+</script>
+</body></html>
