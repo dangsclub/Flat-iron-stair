@@ -15,7 +15,7 @@ button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:7px;backgrou
 button.secondary{background:#666}button.export{background:#1769aa}
 #msg{font-size:11px;color:#666;margin-top:8px;line-height:1.4}
 #loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
-#togglePanel{position:fixed;z-index:6;top:12px;left:12px;width:auto;padding:9px 13px;margin:0;border-radius:8px;background:#333;color:#fff;border:0;font-weight:bold;box-shadow:0 2px 8px #0003;cursor:pointer}#panel.collapsed{display:none}#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}
+#togglePanel{position:fixed;z-index:6;top:12px;left:12px;width:auto;padding:9px 13px;margin:0;border-radius:8px;background:#333;color:#fff;border:0;font-weight:bold;box-shadow:0 2px 8px #0003;cursor:pointer}#panel.collapsed{display:none}#dimensions{position:fixed;right:12px;top:12px;z-index:4;background:#ffffffeF;padding:10px 12px;border-radius:10px;box-shadow:0 2px 10px #0002;font-size:12px;line-height:1.6;min-width:150px}#dimensions b{font-size:13px}#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}
 @media(max-width:600px){
  #panel{width:235px;max-height:calc(100vh - 60px);top:50px;top:8px;left:8px;padding:10px}
  h2{font-size:15px}label{font-size:11px}input{padding:6px;font-size:13px}
@@ -39,8 +39,7 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <label>난간 높이 (cm)</label><input id="rh" type="number" value="100" min="1">
 <label>평철 폭 (mm)</label><input id="width" type="number" value="40" min="1">
 <label>평철 두께 (mm)</label><input id="th" type="number" value="5" min="1">
-<label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">
-<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>
+<label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">\n<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>
 <label>난간 설치 위치</label><select id="side"><option value="left">왼쪽</option><option value="right">오른쪽</option><option value="both">양쪽</option></select>
 <label>기둥 형태</label><select id="postStyle"><option value="flat">평철 기둥</option><option value="square">각관 기둥</option></select>
 <label>상부 난간</label><select id="topRail"><option value="flat">평철</option><option value="round">원형 파이프</option></select>
@@ -58,7 +57,7 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <button id="obj" class="export">OBJ 파일 저장</button>
 <div id="msg">마우스 드래그: 회전 · 휠: 확대/축소 · 우클릭 드래그: 이동</div>
 </div>
-<div id="app"></div>
+<div id="app"></div>\n<div id="dimensions"><b>치수</b><div id="dimText"></div></div>
 <div id="help">3D 모델을 드래그해서 돌려보세요.</div>
 
 <script>
@@ -81,7 +80,6 @@ function boot(){
  var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
 
  var objects=new T.Group();scene.add(objects);
- var dimGroup=new T.Group();scene.add(dimGroup);
  var floorMat=new T.MeshStandardMaterial({color:0xb9c0c7});
  var floor=new T.Mesh(new T.PlaneGeometry(3000,3000),floorMat);
  floor.rotation.x=-Math.PI/2;scene.add(floor);
@@ -99,7 +97,7 @@ function boot(){
    var R=+rh.value||100,W=+width.value||40,TH=+th.value||5,S=Math.max(10,+spacing.value||75);
    var shape=document.getElementById('shape').value,side=document.getElementById('side').value;
    var postStyle=document.getElementById('postStyle').value,topRail=document.getElementById('topRail').value;
-   scene.background.set(document.getElementById('bgColor').value);
+   scene.background.set(document.getElementById('bgColor').value);\n   document.getElementById('dimensions').style.display=document.getElementById('dims').value==='off'?'none':'block';\n   document.getElementById('dimText').innerHTML='계단 길이: '+L+' cm<br>계단 높이: '+H+' cm<br>단너비 × 단높이: '+(L/N).toFixed(1)+' × '+(H/N).toFixed(1)+' cm<br>난간 높이: '+R+' cm<br>기둥 간격: '+S+' cm';
    floorMat.color.set(document.getElementById('floorColor').value);
    stepmat.color.set(document.getElementById('stepColor').value);
    metal.color.set(document.getElementById('railColor').value);
@@ -116,11 +114,7 @@ function boot(){
        for(var c2=0;c2<rest;c2++){var pz=sh*(half+rest+c2+.5);box(sw,sh,depth,sw*(c2+.5),pz,0,stepmat);path.push({x:sw*(c2+.5),y:pz});}
      }
    }
-   function clearDims(){while(dimGroup.children.length)dimGroup.remove(dimGroup.children[0]);}
-  function label(text,pos){var cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=512;cv.height=96;ctx.fillStyle='#111';ctx.font='bold 42px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);var tex=new T.CanvasTexture(cv);var mat=new T.SpriteMaterial({map:tex,transparent:true,depthTest:false});var sp=new T.Sprite(mat);sp.position.set(pos.x,pos.y,pos.z);sp.scale.set(90,17,1);dimGroup.add(sp);return sp;}
-  function dimLine(a,b,text,offset){var g=new T.Group(),dir=new T.Vector3().subVectors(b,a),len=dir.length(),mid=a.clone().add(b).multiplyScalar(.5);var geo=new T.BufferGeometry().setFromPoints([a,b]);var mat=new T.LineBasicMaterial({color:0x222222,depthTest:false});var line=new T.Line(geo,mat);g.add(line);var d=dir.clone().normalize(),per=new T.Vector3(-d.y,d.x,0).normalize().multiplyScalar(offset||8);var e1=new T.Line(new T.BufferGeometry().setFromPoints([a.clone().add(per),a.clone().sub(per)]),mat);var e2=new T.Line(new T.BufferGeometry().setFromPoints([b.clone().add(per),b.clone().sub(per)]),mat);g.add(e1,e2);dimGroup.add(g);label(text,mid.clone().add(new T.Vector3(0,8,0)));}
-  function addDimensions(H,L,N,R,S,sh){clearDims();if(document.getElementById('dims').value==='off')return;var stepH=H/N,stepW=L/N;dimLine(new T.Vector3(0,0,depth+12),new T.Vector3(L,0,depth+12),L+' cm',5);dimLine(new T.Vector3(-18,0,depth+12),new T.Vector3(-18,H,depth+12),H+' cm',5);dimLine(new T.Vector3(0,0,depth+25),new T.Vector3(stepW,stepH,depth+25),stepW+' × '+stepH+' cm',4);dimLine(new T.Vector3(L+18,0,depth+12),new T.Vector3(L+18,R,depth+12),R+' cm',5);dimLine(new T.Vector3(0,H+R+18,depth+12),new T.Vector3(Math.min(S,L),H+R+18,depth+12),Math.min(S,L)+' cm',5);}
-  // 계단 진행 방향에 맞춘 상부 난간과 기둥
+   // 계단 진행 방향에 맞춘 상부 난간과 기둥
    var points=[];
    for(var k=0;k<path.length-1;k++){
      var p=path[k],q=path[k+1],dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy);
@@ -133,13 +127,12 @@ function boot(){
    }
    var seen={},postCount=0;
    points.forEach(function(p){
-     var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;postCount++;
+     var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;
      var sideSign=side==='left'?-1:1;
      if(side==='both'){
        [-1,1].forEach(function(ss){box(flatW,R,flatT,p.x,p.y+R/2,ss*depth*.52,metal);});
      }else box(flatW,R,flatT,p.x,p.y+R/2,sideSign*depth*.52,metal);
    });
-   addDimensions(H,L,N,R,S,shape);
    cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
    target.set(L/2,(H+R)/2,0);
    updateCamera();
@@ -235,7 +228,7 @@ function boot(){
    });download('flat-iron-stair.obj',out,'text/plain')
  }
  document.getElementById('togglePanel').onclick=function(){var p=document.getElementById('panel');p.style.display=(p.style.display==='none'?'':'none')};
- document.getElementById('make').onclick=make;
+ document.getElementById('make').onclick=make;document.getElementById('dims').onchange=make;
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
  document.getElementById('reset').onclick=function(){
