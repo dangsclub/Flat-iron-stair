@@ -235,8 +235,9 @@ function boot(){
    rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;shape.value='straight';side.value='left';postStyle.value='flat';topRail.value='flat';bgColor.value='#dfe5ea';stepColor.value='#777b80';railColor.value='#30343a';floorColor.value='#b9c0c7';make()
  };
  addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
- document.getElementById('loading').style.display='none';make();
- if(innerWidth>600)document.getElementById('panel').classList.add('collapsed');
+ document.getElementById('loading').style.display='none';
+ document.getElementById('panel').classList.add('collapsed');
+ make();
  (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 }
 add('https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js',function(){if(window.THREE)boot();else add('https://unpkg.com/three@0.152.2/build/three.min.js',boot)})
