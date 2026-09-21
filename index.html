@@ -227,7 +227,7 @@ function boot(){
      idx+=p.count
    });download('flat-iron-stair.obj',out,'text/plain')
  }
- document.getElementById('togglePanel').onclick=function(){document.getElementById('panel').classList.toggle('collapsed')};
+ document.getElementById('togglePanel').onclick=function(){var p=document.getElementById('panel');p.style.display=(p.style.display==='none'?'':'none')};
  document.getElementById('make').onclick=make;
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
@@ -236,7 +236,7 @@ function boot(){
  };
  addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
  document.getElementById('loading').style.display='none';
- document.getElementById('panel').classList.add('collapsed');
+ document.getElementById('panel').style.display='none';
  make();
  (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 }
