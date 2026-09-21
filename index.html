@@ -47,7 +47,7 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <button id="make">난간 생성 / 갱신</button>
 <button id="reset" class="secondary">기본값으로 되돌리기</button>
 
-<h3>치수 표시</h3><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>\n<h3>화면 색상</h3>
+<h3>치수 표시</h3><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select><h3>화면 색상</h3>
 <label>배경</label><input id="bgColor" type="color" value="#dfe5ea">
 <label>계단</label><input id="stepColor" type="color" value="#777b80">
 <label>난간</label><input id="railColor" type="color" value="#30343a">
@@ -58,7 +58,7 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <div id="msg">마우스 드래그: 회전 · 휠: 확대/축소 · 우클릭 드래그: 이동</div>
 </div>
 <div id="app"></div>
-<div id="dimensions"><b>주요 치수</b><div id="dimText"></div></div>\n<div id="help">3D 모델을 드래그해서 돌려보세요.</div>
+<div id="dimensions"><b>주요 치수</b><div id="dimText"></div></div><div id="help">3D 모델을 드래그해서 돌려보세요.</div>
 
 <script>
 (function(){
@@ -232,7 +232,7 @@ function boot(){
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
  document.getElementById('reset').onclick=function(){
-   rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;shape.value='straight';side.value='left';postStyle.value='flat';topRail.value='flat';bgColor.value='#dfe5ea';stepColor.value='#777b80';railColor.value='#30343a';floorColor.value='#b9c0c7';make()
+   rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;shape.value='straight';side.value='left';postStyle.value='flat';topRail.value='flat';bgColor.value='#dfe5ea';stepColor.value='#777b80';railColor.value='#30343a';floorColor.value='#b9c0c7';dims.value='on';make()
  };
  addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
  document.getElementById('loading').style.display='none';
