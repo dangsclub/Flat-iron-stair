@@ -40,7 +40,8 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <label>평철 폭 (mm)</label><input id="width" type="number" value="40" min="1">
 <label>평철 두께 (mm)</label><input id="th" type="number" value="5" min="1">
 <label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">
-<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>\n<label>난간 설치 위치</label><select id="side"><option value="left">왼쪽</option><option value="right">오른쪽</option><option value="both">양쪽</option></select>
+<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>
+<label>난간 설치 위치</label><select id="side"><option value="left">왼쪽</option><option value="right">오른쪽</option><option value="both">양쪽</option></select>
 <label>기둥 형태</label><select id="postStyle"><option value="flat">평철 기둥</option><option value="square">각관 기둥</option></select>
 <label>상부 난간</label><select id="topRail"><option value="flat">평철</option><option value="round">원형 파이프</option></select>
 
@@ -79,7 +80,8 @@ function boot(){
  scene.add(new T.HemisphereLight(0xffffff,0x666666,2));
  var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
 
- var objects=new T.Group();scene.add(objects);\n var dimGroup=new T.Group();scene.add(dimGroup);
+ var objects=new T.Group();scene.add(objects);
+ var dimGroup=new T.Group();scene.add(dimGroup);
  var floorMat=new T.MeshStandardMaterial({color:0xb9c0c7});
  var floor=new T.Mesh(new T.PlaneGeometry(3000,3000),floorMat);
  floor.rotation.x=-Math.PI/2;scene.add(floor);
@@ -114,7 +116,11 @@ function boot(){
        for(var c2=0;c2<rest;c2++){var pz=sh*(half+rest+c2+.5);box(sw,sh,depth,sw*(c2+.5),pz,0,stepmat);path.push({x:sw*(c2+.5),y:pz});}
      }
    }
-   function clearDims(){while(dimGroup.children.length)dimGroup.remove(dimGroup.children[0]);}\n  function label(text,pos){var cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=512;cv.height=96;ctx.fillStyle='#111';ctx.font='bold 42px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);var tex=new T.CanvasTexture(cv);var mat=new T.SpriteMaterial({map:tex,transparent:true,depthTest:false});var sp=new T.Sprite(mat);sp.position.set(pos.x,pos.y,pos.z);sp.scale.set(90,17,1);dimGroup.add(sp);return sp;}\n  function dimLine(a,b,text,offset){var g=new T.Group(),dir=new T.Vector3().subVectors(b,a),len=dir.length(),mid=a.clone().add(b).multiplyScalar(.5);var geo=new T.BufferGeometry().setFromPoints([a,b]);var mat=new T.LineBasicMaterial({color:0x222222,depthTest:false});var line=new T.Line(geo,mat);g.add(line);var d=dir.clone().normalize(),per=new T.Vector3(-d.y,d.x,0).normalize().multiplyScalar(offset||8);var e1=new T.Line(new T.BufferGeometry().setFromPoints([a.clone().add(per),a.clone().sub(per)]),mat);var e2=new T.Line(new T.BufferGeometry().setFromPoints([b.clone().add(per),b.clone().sub(per)]),mat);g.add(e1,e2);dimGroup.add(g);label(text,mid.clone().add(new T.Vector3(0,8,0)));}\n  function addDimensions(H,L,N,R,S,sh){clearDims();if(document.getElementById('dims').value==='off')return;var stepH=H/N,stepW=L/N;dimLine(new T.Vector3(0,0,depth+12),new T.Vector3(L,0,depth+12),L+' cm',5);dimLine(new T.Vector3(-18,0,depth+12),new T.Vector3(-18,H,depth+12),H+' cm',5);dimLine(new T.Vector3(0,0,depth+25),new T.Vector3(stepW,stepH,depth+25),stepW+' × '+stepH+' cm',4);dimLine(new T.Vector3(L+18,0,depth+12),new T.Vector3(L+18,R,depth+12),R+' cm',5);dimLine(new T.Vector3(0,H+R+18,depth+12),new T.Vector3(Math.min(S,L),H+R+18,depth+12),Math.min(S,L)+' cm',5);}\n  // 계단 진행 방향에 맞춘 상부 난간과 기둥
+   function clearDims(){while(dimGroup.children.length)dimGroup.remove(dimGroup.children[0]);}
+  function label(text,pos){var cv=document.createElement('canvas'),ctx=cv.getContext('2d');cv.width=512;cv.height=96;ctx.fillStyle='#111';ctx.font='bold 42px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);var tex=new T.CanvasTexture(cv);var mat=new T.SpriteMaterial({map:tex,transparent:true,depthTest:false});var sp=new T.Sprite(mat);sp.position.set(pos.x,pos.y,pos.z);sp.scale.set(90,17,1);dimGroup.add(sp);return sp;}
+  function dimLine(a,b,text,offset){var g=new T.Group(),dir=new T.Vector3().subVectors(b,a),len=dir.length(),mid=a.clone().add(b).multiplyScalar(.5);var geo=new T.BufferGeometry().setFromPoints([a,b]);var mat=new T.LineBasicMaterial({color:0x222222,depthTest:false});var line=new T.Line(geo,mat);g.add(line);var d=dir.clone().normalize(),per=new T.Vector3(-d.y,d.x,0).normalize().multiplyScalar(offset||8);var e1=new T.Line(new T.BufferGeometry().setFromPoints([a.clone().add(per),a.clone().sub(per)]),mat);var e2=new T.Line(new T.BufferGeometry().setFromPoints([b.clone().add(per),b.clone().sub(per)]),mat);g.add(e1,e2);dimGroup.add(g);label(text,mid.clone().add(new T.Vector3(0,8,0)));}
+  function addDimensions(H,L,N,R,S,sh){clearDims();if(document.getElementById('dims').value==='off')return;var stepH=H/N,stepW=L/N;dimLine(new T.Vector3(0,0,depth+12),new T.Vector3(L,0,depth+12),L+' cm',5);dimLine(new T.Vector3(-18,0,depth+12),new T.Vector3(-18,H,depth+12),H+' cm',5);dimLine(new T.Vector3(0,0,depth+25),new T.Vector3(stepW,stepH,depth+25),stepW+' × '+stepH+' cm',4);dimLine(new T.Vector3(L+18,0,depth+12),new T.Vector3(L+18,R,depth+12),R+' cm',5);dimLine(new T.Vector3(0,H+R+18,depth+12),new T.Vector3(Math.min(S,L),H+R+18,depth+12),Math.min(S,L)+' cm',5);}
+  // 계단 진행 방향에 맞춘 상부 난간과 기둥
    var points=[];
    for(var k=0;k<path.length-1;k++){
      var p=path[k],q=path[k+1],dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy);
@@ -133,7 +139,8 @@ function boot(){
        [-1,1].forEach(function(ss){box(flatW,R,flatT,p.x,p.y+R/2,ss*depth*.52,metal);});
      }else box(flatW,R,flatT,p.x,p.y+R/2,sideSign*depth*.52,metal);
    });
-   addDimensions(H,L,N,R,S,shape);\n   cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
+   addDimensions(H,L,N,R,S,shape);
+   cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
    target.set(L/2,(H+R)/2,0);
    updateCamera();
    document.getElementById('msg').textContent='완성: '+N+'단 / 기둥 약 '+postCount+'개 / 기둥 간격 '+S+'cm';
@@ -208,22 +215,32 @@ function boot(){
    setTimeout(function(){URL.revokeObjectURL(a.href)},1000)
  }
  function saveSTL(){
-   var out='solid stair\n',tris=triangleList();
+   var out='solid stair
+',tris=triangleList();
    for(var q of tris){
      var a=new T.Vector3().fromArray(q[0]),b=new T.Vector3().fromArray(q[1]),c=new T.Vector3().fromArray(q[2]);
      var n=new T.Vector3().subVectors(b,a).cross(new T.Vector3().subVectors(c,a)).normalize();
-     out+=' facet normal '+n.x+' '+n.y+' '+n.z+'\n  outer loop\n';
-     for(var v of q)out+='   vertex '+v[0]+' '+v[1]+' '+v[2]+'\n';
-     out+='  endloop\n endfacet\n'
-   }out+='endsolid stair\n';download('flat-iron-stair.stl',out,'model/stl')
+     out+=' facet normal '+n.x+' '+n.y+' '+n.z+'
+  outer loop
+';
+     for(var v of q)out+='   vertex '+v[0]+' '+v[1]+' '+v[2]+'
+';
+     out+='  endloop
+ endfacet
+'
+   }out+='endsolid stair
+';download('flat-iron-stair.stl',out,'model/stl')
  }
  function saveOBJ(){
-   var out='# Flat iron stair\n',idx=1;
+   var out='# Flat iron stair
+',idx=1;
    objects.traverse(function(o){
      if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
      var g=o.geometry.clone();g.applyMatrix4(o.matrixWorld),p=g.attributes.position;
-     for(var i=0;i<p.count;i++)out+='v '+p.getX(i)+' '+p.getY(i)+' '+p.getZ(i)+'\n';
-     for(var j=0;j<p.count;j+=3)out+='f '+(idx+j)+' '+(idx+j+1)+' '+(idx+j+2)+'\n';
+     for(var i=0;i<p.count;i++)out+='v '+p.getX(i)+' '+p.getY(i)+' '+p.getZ(i)+'
+';
+     for(var j=0;j<p.count;j+=3)out+='f '+(idx+j)+' '+(idx+j+1)+' '+(idx+j+2)+'
+';
      idx+=p.count
    });download('flat-iron-stair.obj',out,'text/plain')
  }
