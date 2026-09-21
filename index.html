@@ -10,7 +10,7 @@ body{font-family:Arial,sans-serif;background:#eef1f4;color:#222}
 #panel{position:fixed;z-index:5;top:12px;left:12px;width:285px;max-height:calc(100vh - 24px);overflow:auto;background:#fff;padding:14px;border-radius:12px;box-shadow:0 3px 15px #0003}
 h2{font-size:18px;margin:0 0 10px}h3{font-size:13px;margin:14px 0 5px;border-bottom:1px solid #ddd;padding-bottom:5px}
 label{display:block;font-size:12px;margin:7px 0 3px;color:#444}
-input{width:100%;padding:7px;border:1px solid #ccc;border-radius:6px;font-size:14px}
+input,select{width:100%;padding:7px;border:1px solid #ccc;border-radius:6px;font-size:14px}
 button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:7px;background:#333;color:#fff;font-weight:bold;cursor:pointer}
 button.secondary{background:#666}button.export{background:#1769aa}
 #msg{font-size:11px;color:#666;margin-top:8px;line-height:1.4}
@@ -33,16 +33,25 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <label>계단 높이 (cm)</label><input id="rise" type="number" value="180" min="1">
 <label>계단 길이 (cm)</label><input id="run" type="number" value="300" min="1">
 <label>계단 단수</label><input id="steps" type="number" value="10" min="1" max="100">
+<label>계단 형태</label><select id="shape"><option value="straight">직선 계단</option><option value="L">ㄱ자 계단</option><option value="U">ㄷ자 계단</option></select>
 
 <h3>난간</h3>
 <label>난간 높이 (cm)</label><input id="rh" type="number" value="100" min="1">
 <label>평철 폭 (mm)</label><input id="width" type="number" value="40" min="1">
 <label>평철 두께 (mm)</label><input id="th" type="number" value="5" min="1">
 <label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">
+<label>난간 설치 위치</label><select id="side"><option value="left">왼쪽</option><option value="right">오른쪽</option><option value="both">양쪽</option></select>
+<label>기둥 형태</label><select id="postStyle"><option value="flat">평철 기둥</option><option value="square">각관 기둥</option></select>
+<label>상부 난간</label><select id="topRail"><option value="flat">평철</option><option value="round">원형 파이프</option></select>
 
 <button id="make">난간 생성 / 갱신</button>
 <button id="reset" class="secondary">기본값으로 되돌리기</button>
 
+<h3>화면 색상</h3>
+<label>배경</label><input id="bgColor" type="color" value="#dfe5ea">
+<label>계단</label><input id="stepColor" type="color" value="#777b80">
+<label>난간</label><input id="railColor" type="color" value="#30343a">
+<label>바닥</label><input id="floorColor" type="color" value="#b9c0c7">
 <h3>3D 파일 저장</h3>
 <button id="stl" class="export">STL 파일 저장</button>
 <button id="obj" class="export">OBJ 파일 저장</button>
@@ -59,7 +68,7 @@ function add(src,done){
 function boot(){
  if(!window.THREE){document.getElementById('loading').textContent='3D 라이브러리를 불러오지 못했습니다. 인터넷 연결 후 새로고침하세요.';return}
  var T=THREE,scene=new T.Scene();
- scene.background=new T.Color(0xeef1f4);
+ scene.background=new T.Color(0xdfe5ea);
  var cam=new T.PerspectiveCamera(45,innerWidth/innerHeight,.1,10000);
  var ren;
  try{ren=new T.WebGLRenderer({antialias:true})}
@@ -71,7 +80,8 @@ function boot(){
  var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
 
  var objects=new T.Group();scene.add(objects);
- var floor=new T.Mesh(new T.PlaneGeometry(3000,3000),new T.MeshStandardMaterial({color:0xd7d9dc}));
+ var floorMat=new T.MeshStandardMaterial({color:0xb9c0c7});
+ var floor=new T.Mesh(new T.PlaneGeometry(3000,3000),floorMat);
  floor.rotation.x=-Math.PI/2;scene.add(floor);
 
  var metal=new T.MeshStandardMaterial({color:0x55585c,metalness:.8,roughness:.28});
@@ -85,23 +95,44 @@ function boot(){
    while(objects.children.length)objects.remove(objects.children[0]);
    var H=+rise.value||180,L=+run.value||300,N=Math.max(1,Math.min(100,+steps.value||10));
    var R=+rh.value||100,W=+width.value||40,TH=+th.value||5,S=Math.max(10,+spacing.value||75);
+   var shape=document.getElementById('shape').value,side=document.getElementById('side').value;
+   var postStyle=document.getElementById('postStyle').value,topRail=document.getElementById('topRail').value;
+   scene.background.set(document.getElementById('bgColor').value);
+   floorMat.color.set(document.getElementById('floorColor').value);
+   stepmat.color.set(document.getElementById('stepColor').value);
+   metal.color.set(document.getElementById('railColor').value);
    var sh=H/N,sw=L/N,flatW=W/10,flatT=TH/10;
-   for(var i=0;i<N;i++) box(sw,sh,45,sw*(i+.5),sh*(i+.5),0,stepmat);
-
-   var len=Math.sqrt(L*L+H*H),ang=Math.atan2(H,L);
-   var railY=sh+H+R;
-   box(len,flatW,flatT,L/2,railY,0,metal,ang);
-
-   var count=Math.max(2,Math.ceil(len/S)+1);
-   for(var j=0;j<count;j++){
-     var t=j/(count-1),x=L*t,y=sh+H*t;
-     box(flatW,R,flatT,x,y+R/2,0,metal);
+   var depth=45, path=[];
+   if(shape==='straight'){
+     for(var i=0;i<N;i++){var px=sw*(i+.5),py=sh*(i+.5);box(sw,sh,depth,px,py,0,stepmat);path.push({x:px,y:py});}
+   }else{
+     var half=Math.max(2,Math.floor(N/2)),rest=N-half;
+     for(var a=0;a<half;a++){var px1=sw*(a+.5),py1=sh*(a+.5);box(sw,sh,depth,px1,py1,0,stepmat);path.push({x:px1,y:py1});}
+     for(var b=0;b<rest;b++){var px2=L-sw*(b+.5),py2=sh*(half+b+.5);box(sw,sh,depth,px2,py2,0,stepmat);path.push({x:px2,y:py2});}
+     if(shape==='U'){
+       var zDepth=L;
+       for(var c2=0;c2<rest;c2++){var pz=sh*(half+rest+c2+.5);box(sw,sh,depth,sw*(c2+.5),pz,0,stepmat);path.push({x:sw*(c2+.5),y:pz});}
+     }
    }
-
-   // 시작/끝 상단 손잡이 연결부
-   box(flatW,R,flatT,0,sh+R/2,0,metal);
-   box(flatW,R,flatT,L,H+sh+R/2,0,metal);
-
+   // 계단 진행 방향에 맞춘 상부 난간과 기둥
+   var points=[];
+   for(var k=0;k<path.length-1;k++){
+     var p=path[k],q=path[k+1],dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy);
+     if(len<.01)continue;
+     var ang=Math.atan2(dy,dx),mx=(p.x+q.x)/2,my=(p.y+q.y)/2+R;
+     var railH=topRail==='round'?Math.max(2,W*.22):flatW;
+     box(len,railH,flatT,mx,my,0,metal,ang);
+     var cnt=Math.max(2,Math.ceil(len/S)+1);
+     for(var jj=0;jj<cnt;jj++){var t=jj/(cnt-1),xx=p.x+dx*t,yy=p.y+dy*t;points.push({x:xx,y:yy});}
+   }
+   var seen={};
+   points.forEach(function(p){
+     var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;
+     var sideSign=side==='left'?-1:1;
+     if(side==='both'){
+       [-1,1].forEach(function(ss){box(flatW,R,flatT,p.x,p.y+R/2,ss*depth*.52,metal);});
+     }else box(flatW,R,flatT,p.x,p.y+R/2,sideSign*depth*.52,metal);
+   });
    cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
    target.set(L/2,(H+R)/2,0);
    updateCamera();
@@ -201,7 +232,7 @@ function boot(){
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
  document.getElementById('reset').onclick=function(){
-   rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;make()
+   rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;shape.value='straight';side.value='left';postStyle.value='flat';topRail.value='flat';bgColor.value='#dfe5ea';stepColor.value='#777b80';railColor.value='#30343a';floorColor.value='#b9c0c7';make()
  };
  addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
  document.getElementById('loading').style.display='none';make();
