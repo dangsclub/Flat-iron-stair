@@ -133,7 +133,7 @@ function boot(){
    }
    var seen={},postCount=0;
    points.forEach(function(p){
-     var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;
+     var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;postCount++;
      var sideSign=side==='left'?-1:1;
      if(side==='both'){
        [-1,1].forEach(function(ss){box(flatW,R,flatT,p.x,p.y+R/2,ss*depth*.52,metal);});
@@ -215,32 +215,22 @@ function boot(){
    setTimeout(function(){URL.revokeObjectURL(a.href)},1000)
  }
  function saveSTL(){
-   var out='solid stair
-',tris=triangleList();
+   var out='solid stair\n',tris=triangleList();
    for(var q of tris){
      var a=new T.Vector3().fromArray(q[0]),b=new T.Vector3().fromArray(q[1]),c=new T.Vector3().fromArray(q[2]);
      var n=new T.Vector3().subVectors(b,a).cross(new T.Vector3().subVectors(c,a)).normalize();
-     out+=' facet normal '+n.x+' '+n.y+' '+n.z+'
-  outer loop
-';
-     for(var v of q)out+='   vertex '+v[0]+' '+v[1]+' '+v[2]+'
-';
-     out+='  endloop
- endfacet
-'
-   }out+='endsolid stair
-';download('flat-iron-stair.stl',out,'model/stl')
+     out+=' facet normal '+n.x+' '+n.y+' '+n.z+'\n  outer loop\n';
+     for(var v of q)out+='   vertex '+v[0]+' '+v[1]+' '+v[2]+'\n';
+     out+='  endloop\n endfacet\n'
+   }out+='endsolid stair\n';download('flat-iron-stair.stl',out,'model/stl')
  }
  function saveOBJ(){
-   var out='# Flat iron stair
-',idx=1;
+   var out='# Flat iron stair\n',idx=1;
    objects.traverse(function(o){
      if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
      var g=o.geometry.clone();g.applyMatrix4(o.matrixWorld),p=g.attributes.position;
-     for(var i=0;i<p.count;i++)out+='v '+p.getX(i)+' '+p.getY(i)+' '+p.getZ(i)+'
-';
-     for(var j=0;j<p.count;j+=3)out+='f '+(idx+j)+' '+(idx+j+1)+' '+(idx+j+2)+'
-';
+     for(var i=0;i<p.count;i++)out+='v '+p.getX(i)+' '+p.getY(i)+' '+p.getZ(i)+'\n';
+     for(var j=0;j<p.count;j+=3)out+='f '+(idx+j)+' '+(idx+j+1)+' '+(idx+j+2)+'\n';
      idx+=p.count
    });download('flat-iron-stair.obj',out,'text/plain')
  }
