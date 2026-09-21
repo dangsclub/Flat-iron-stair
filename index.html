@@ -39,7 +39,8 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <label>난간 높이 (cm)</label><input id="rh" type="number" value="100" min="1">
 <label>평철 폭 (mm)</label><input id="width" type="number" value="40" min="1">
 <label>평철 두께 (mm)</label><input id="th" type="number" value="5" min="1">
-<label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">\n<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>
+<label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">
+<label>치수 표시</label><select id="dims"><option value="on">표시</option><option value="off">숨김</option></select>
 <label>난간 설치 위치</label><select id="side"><option value="left">왼쪽</option><option value="right">오른쪽</option><option value="both">양쪽</option></select>
 <label>기둥 형태</label><select id="postStyle"><option value="flat">평철 기둥</option><option value="square">각관 기둥</option></select>
 <label>상부 난간</label><select id="topRail"><option value="flat">평철</option><option value="round">원형 파이프</option></select>
@@ -57,7 +58,8 @@ button.secondary{background:#666}button.export{background:#1769aa}
 <button id="obj" class="export">OBJ 파일 저장</button>
 <div id="msg">마우스 드래그: 회전 · 휠: 확대/축소 · 우클릭 드래그: 이동</div>
 </div>
-<div id="app"></div>\n<div id="dimensions"><b>치수</b><div id="dimText"></div></div>
+<div id="app"></div>
+<div id="dimensions"><b>치수</b><div id="dimText"></div></div>
 <div id="help">3D 모델을 드래그해서 돌려보세요.</div>
 
 <script>
@@ -97,7 +99,9 @@ function boot(){
    var R=+rh.value||100,W=+width.value||40,TH=+th.value||5,S=Math.max(10,+spacing.value||75);
    var shape=document.getElementById('shape').value,side=document.getElementById('side').value;
    var postStyle=document.getElementById('postStyle').value,topRail=document.getElementById('topRail').value;
-   scene.background.set(document.getElementById('bgColor').value);\n   document.getElementById('dimensions').style.display=document.getElementById('dims').value==='off'?'none':'block';\n   document.getElementById('dimText').innerHTML='계단 길이: '+L+' cm<br>계단 높이: '+H+' cm<br>단너비 × 단높이: '+(L/N).toFixed(1)+' × '+(H/N).toFixed(1)+' cm<br>난간 높이: '+R+' cm<br>기둥 간격: '+S+' cm';
+   scene.background.set(document.getElementById('bgColor').value);
+   document.getElementById('dimensions').style.display=document.getElementById('dims').value==='off'?'none':'block';
+   document.getElementById('dimText').innerHTML='계단 길이: '+L+' cm<br>계단 높이: '+H+' cm<br>단너비 × 단높이: '+(L/N).toFixed(1)+' × '+(H/N).toFixed(1)+' cm<br>난간 높이: '+R+' cm<br>기둥 간격: '+S+' cm';
    floorMat.color.set(document.getElementById('floorColor').value);
    stepmat.color.set(document.getElementById('stepColor').value);
    metal.color.set(document.getElementById('railColor').value);
@@ -228,7 +232,8 @@ function boot(){
    });download('flat-iron-stair.obj',out,'text/plain')
  }
  document.getElementById('togglePanel').onclick=function(){var p=document.getElementById('panel');p.style.display=(p.style.display==='none'?'':'none')};
- document.getElementById('make').onclick=make;document.getElementById('dims').onchange=make;
+ document.getElementById('make').onclick=make;
+ document.getElementById('dims').onchange=make;
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
  document.getElementById('reset').onclick=function(){
