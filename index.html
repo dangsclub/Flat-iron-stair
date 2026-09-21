@@ -15,9 +15,9 @@ button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:7px;backgrou
 button.secondary{background:#666}button.export{background:#1769aa}
 #msg{font-size:11px;color:#666;margin-top:8px;line-height:1.4}
 #loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
-#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}
+#togglePanel{position:fixed;z-index:6;top:12px;left:12px;width:auto;padding:9px 13px;margin:0;border-radius:8px;background:#333;color:#fff;border:0;font-weight:bold;box-shadow:0 2px 8px #0003;cursor:pointer}#panel.collapsed{display:none}#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}
 @media(max-width:600px){
- #panel{width:235px;top:8px;left:8px;padding:10px}
+ #panel{width:235px;max-height:calc(100vh - 60px);top:50px;top:8px;left:8px;padding:10px}
  h2{font-size:15px}label{font-size:11px}input{padding:6px;font-size:13px}
  #help{font-size:10px;right:8px;bottom:8px}
 }
@@ -25,6 +25,7 @@ button.secondary{background:#666}button.export{background:#1769aa}
 </head>
 <body>
 <div id="loading">3D 화면을 준비하는 중...</div>
+<button id="togglePanel" aria-label="설정창 열기/닫기">☰ 설정</button>
 <div id="panel">
 <h2>금속 평철 계단난간 3D 설계기</h2>
 
@@ -195,6 +196,7 @@ function boot(){
      idx+=p.count
    });download('flat-iron-stair.obj',out,'text/plain')
  }
+ document.getElementById('togglePanel').onclick=function(){document.getElementById('panel').classList.toggle('collapsed')};
  document.getElementById('make').onclick=make;
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
@@ -203,6 +205,7 @@ function boot(){
  };
  addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
  document.getElementById('loading').style.display='none';make();
+ if(innerWidth>600)document.getElementById('panel').classList.add('collapsed');
  (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 }
 add('https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js',function(){if(window.THREE)boot();else add('https://unpkg.com/three@0.152.2/build/three.min.js',boot)})
