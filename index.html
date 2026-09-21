@@ -125,7 +125,7 @@ function boot(){
      var cnt=Math.max(2,Math.ceil(len/S)+1);
      for(var jj=0;jj<cnt;jj++){var t=jj/(cnt-1),xx=p.x+dx*t,yy=p.y+dy*t;points.push({x:xx,y:yy});}
    }
-   var seen={};
+   var seen={},postCount=0;
    points.forEach(function(p){
      var key=Math.round(p.x*10)+'_'+Math.round(p.y*10);if(seen[key])return;seen[key]=1;
      var sideSign=side==='left'?-1:1;
@@ -136,7 +136,7 @@ function boot(){
    cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
    target.set(L/2,(H+R)/2,0);
    updateCamera();
-   document.getElementById('msg').textContent='완성: '+N+'단 / 기둥 약 '+count+'개 / 기둥 간격 '+S+'cm';
+   document.getElementById('msg').textContent='완성: '+N+'단 / 기둥 약 '+postCount+'개 / 기둥 간격 '+S+'cm';
  }
  
  // 간단한 OrbitControls: 외부 라이브러리 없이 마우스/터치 회전, 확대, 이동
