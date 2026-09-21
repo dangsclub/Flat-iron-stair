@@ -15,7 +15,7 @@ button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:7px;backgrou
 button.secondary{background:#666}button.export{background:#1769aa}
 #msg{font-size:11px;color:#666;margin-top:8px;line-height:1.4}
 #loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
-#togglePanel{position:fixed;z-index:6;top:12px;left:12px;width:auto;padding:9px 13px;margin:0;border-radius:8px;background:#333;color:#fff;border:0;font-weight:bold;box-shadow:0 2px 8px #0003;cursor:pointer}#panel.collapsed{display:none}#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}\n#dimensions{position:fixed;right:12px;top:12px;z-index:4;background:#fff;min-width:190px;padding:10px 12px;border-radius:10px;box-shadow:0 2px 10px #0003;font-size:12px;line-height:1.65}#dimensions b{display:block;margin-bottom:3px;font-size:13px}
+#togglePanel{position:fixed;z-index:6;top:12px;left:12px;width:auto;padding:9px 13px;margin:0;border-radius:8px;background:#333;color:#fff;border:0;font-weight:bold;box-shadow:0 2px 8px #0003;cursor:pointer}#panel.collapsed{display:none}#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}\n#dimensions{position:fixed;right:16px;top:70px;z-index:20;background:#fff;min-width:240px;padding:14px 16px;border:2px solid #333;border-radius:12px;box-shadow:0 4px 16px #0005;font-size:16px;line-height:1.8;color:#111}#dimensions b{display:block;margin-bottom:5px;font-size:18px}
 @media(max-width:600px){
  #panel{width:235px;max-height:calc(100vh - 60px);top:50px;top:8px;left:8px;padding:10px}
  h2{font-size:15px}label{font-size:11px}input{padding:6px;font-size:13px}
@@ -91,7 +91,18 @@ function boot(){
    var m=new T.Mesh(new T.BoxGeometry(x,y,z),mat);
    m.position.set(px,py,pz);if(rotZ)m.rotation.z=rotZ;objects.add(m);return m
  }
+ function updateDimensions(){
+   var H=+document.getElementById('rise').value||180;
+   var L=+document.getElementById('run').value||300;
+   var N=Math.max(1,+document.getElementById('steps').value||10);
+   var R=+document.getElementById('rh').value||100;
+   var S=Math.max(10,+document.getElementById('spacing').value||75);
+   var box=document.getElementById('dimensions');
+   box.style.display=document.getElementById('dims').value==='off'?'none':'block';
+   document.getElementById('dimText').innerHTML='전체 길이: <b>'+L.toFixed(1)+' cm</b><br>전체 높이: <b>'+H.toFixed(1)+' cm</b><br>단너비: <b>'+(L/N).toFixed(1)+' cm</b><br>단높이: <b>'+(H/N).toFixed(1)+' cm</b><br>난간 높이: <b>'+R.toFixed(1)+' cm</b><br>기둥 간격: <b>'+S.toFixed(1)+' cm</b>';
+ }
  function make(){
+   updateDimensions();
    while(objects.children.length)objects.remove(objects.children[0]);
    var H=+rise.value||180,L=+run.value||300,N=Math.max(1,Math.min(100,+steps.value||10));
    var R=+rh.value||100,W=+width.value||40,TH=+th.value||5,S=Math.max(10,+spacing.value||75);
@@ -231,6 +242,7 @@ function boot(){
  document.getElementById('make').onclick=make;
  document.getElementById('stl').onclick=saveSTL;
  document.getElementById('obj').onclick=saveOBJ;
+ document.getElementById('dims').onchange=updateDimensions;
  document.getElementById('reset').onclick=function(){
    rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;shape.value='straight';side.value='left';postStyle.value='flat';topRail.value='flat';bgColor.value='#dfe5ea';stepColor.value='#777b80';railColor.value='#30343a';floorColor.value='#b9c0c7';dims.value='on';make()
  };
