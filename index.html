@@ -2,52 +2,206 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>평철 계단난간 3D 생성기</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>평철 계단난간 3D 설계기</title>
 <style>
 *{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:Arial,sans-serif;background:#eef1f4}
-#panel{position:fixed;z-index:5;top:12px;left:12px;width:250px;background:#fff;padding:14px;border-radius:12px;box-shadow:0 3px 15px #0003}
-h2{font-size:17px;margin:0 0 12px}label{display:block;font-size:13px;margin:8px 0 3px;color:#444}
-input{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}button{width:100%;margin-top:10px;padding:9px;border:0;border-radius:7px;background:#333;color:white;font-weight:bold}
-#msg{font-size:12px;color:#666;margin-top:9px}#loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
+body{font-family:Arial,sans-serif;background:#eef1f4;color:#222}
+#panel{position:fixed;z-index:5;top:12px;left:12px;width:285px;max-height:calc(100vh - 24px);overflow:auto;background:#fff;padding:14px;border-radius:12px;box-shadow:0 3px 15px #0003}
+h2{font-size:18px;margin:0 0 10px}h3{font-size:13px;margin:14px 0 5px;border-bottom:1px solid #ddd;padding-bottom:5px}
+label{display:block;font-size:12px;margin:7px 0 3px;color:#444}
+input{width:100%;padding:7px;border:1px solid #ccc;border-radius:6px;font-size:14px}
+button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:7px;background:#333;color:#fff;font-weight:bold;cursor:pointer}
+button.secondary{background:#666}button.export{background:#1769aa}
+#msg{font-size:11px;color:#666;margin-top:8px;line-height:1.4}
+#loading{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#eef1f4}
+#help{position:fixed;right:12px;bottom:12px;background:#000b;color:#fff;padding:8px 10px;border-radius:8px;font-size:11px;z-index:4}
+@media(max-width:600px){
+ #panel{width:235px;top:8px;left:8px;padding:10px}
+ h2{font-size:15px}label{font-size:11px}input{padding:6px;font-size:13px}
+ #help{font-size:10px;right:8px;bottom:8px}
+}
 </style>
 </head>
 <body>
 <div id="loading">3D 화면을 준비하는 중...</div>
 <div id="panel">
-<h2>금속 평철 계단난간</h2>
-<label>계단 높이 (cm)</label><input id="rise" type="number" value="180">
-<label>계단 길이 (cm)</label><input id="run" type="number" value="300">
-<label>난간 높이 (cm)</label><input id="rh" type="number" value="100">
-<label>평철 두께 (mm)</label><input id="th" type="number" value="5">
-<button id="make">난간 생성</button>
-<div id="msg">값을 바꾸고 난간 생성을 눌러주세요.</div>
+<h2>금속 평철 계단난간 3D 설계기</h2>
+
+<h3>계단</h3>
+<label>계단 높이 (cm)</label><input id="rise" type="number" value="180" min="1">
+<label>계단 길이 (cm)</label><input id="run" type="number" value="300" min="1">
+<label>계단 단수</label><input id="steps" type="number" value="10" min="1" max="100">
+
+<h3>난간</h3>
+<label>난간 높이 (cm)</label><input id="rh" type="number" value="100" min="1">
+<label>평철 폭 (mm)</label><input id="width" type="number" value="40" min="1">
+<label>평철 두께 (mm)</label><input id="th" type="number" value="5" min="1">
+<label>기둥 간격 (cm)</label><input id="spacing" type="number" value="75" min="10">
+
+<button id="make">난간 생성 / 갱신</button>
+<button id="reset" class="secondary">기본값으로 되돌리기</button>
+
+<h3>3D 파일 저장</h3>
+<button id="stl" class="export">STL 파일 저장</button>
+<button id="obj" class="export">OBJ 파일 저장</button>
+<div id="msg">마우스 드래그: 회전 · 휠: 확대/축소 · 우클릭 드래그: 이동</div>
 </div>
 <div id="app"></div>
+<div id="help">3D 모델을 드래그해서 돌려보세요.</div>
+
 <script>
 (function(){
-function add(src,done){var s=document.createElement('script');s.src=src;s.onload=done;s.onerror=done;document.head.appendChild(s)}
+function add(src,done){
+ var s=document.createElement('script');s.src=src;s.onload=done;s.onerror=done;document.head.appendChild(s)
+}
 function boot(){
  if(!window.THREE){document.getElementById('loading').textContent='3D 라이브러리를 불러오지 못했습니다. 인터넷 연결 후 새로고침하세요.';return}
- var T=THREE,scene=new T.Scene();scene.background=new T.Color(0xeef1f4);
- var cam=new T.PerspectiveCamera(45,innerWidth/innerHeight,.1,5000);
- var ren=new T.WebGLRenderer({antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(innerWidth,innerHeight);document.getElementById('app').appendChild(ren.domElement);
- scene.add(new T.HemisphereLight(0xffffff,0x666666,2));var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
+ var T=THREE,scene=new T.Scene();
+ scene.background=new T.Color(0xeef1f4);
+ var cam=new T.PerspectiveCamera(45,innerWidth/innerHeight,.1,10000);
+ var ren;
+ try{ren=new T.WebGLRenderer({antialias:true})}
+ catch(e){document.getElementById('loading').textContent='이 기기에서 WebGL을 사용할 수 없습니다.';return}
+ ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(innerWidth,innerHeight);
+ document.getElementById('app').appendChild(ren.domElement);
+
+ scene.add(new T.HemisphereLight(0xffffff,0x666666,2));
+ var dl=new T.DirectionalLight(0xffffff,2);dl.position.set(300,500,300);scene.add(dl);
+
  var objects=new T.Group();scene.add(objects);
- var floor=new T.Mesh(new T.PlaneGeometry(1500,1500),new T.MeshStandardMaterial({color:0xd7d9dc}));floor.rotation.x=-Math.PI/2;scene.add(floor);
- function box(x,y,z,px,py,pz,mat){var m=new T.Mesh(new T.BoxGeometry(x,y,z),mat);m.position.set(px,py,pz);objects.add(m);return m}
+ var floor=new T.Mesh(new T.PlaneGeometry(3000,3000),new T.MeshStandardMaterial({color:0xd7d9dc}));
+ floor.rotation.x=-Math.PI/2;scene.add(floor);
+
+ var metal=new T.MeshStandardMaterial({color:0x55585c,metalness:.8,roughness:.28});
+ var stepmat=new T.MeshStandardMaterial({color:0x303236,metalness:.5,roughness:.4});
+
+ function box(x,y,z,px,py,pz,mat,rotZ){
+   var m=new T.Mesh(new T.BoxGeometry(x,y,z),mat);
+   m.position.set(px,py,pz);if(rotZ)m.rotation.z=rotZ;objects.add(m);return m
+ }
  function make(){
    while(objects.children.length)objects.remove(objects.children[0]);
-   var H=+rise.value||180,L=+run.value||300,R=+rh.value||100,th=+document.getElementById('th').value||5;
-   var n=10,sh=H/n,sw=L/n,metal=new T.MeshStandardMaterial({color:0x55585c,metalness:.8,roughness:.3}),stepmat=new T.MeshStandardMaterial({color:0x303236,metalness:.5,roughness:.4});
-   for(var i=0;i<n;i++)box(sw,sh,45,sw*(i+.5),sh*(i+.5),0,stepmat);
+   var H=+rise.value||180,L=+run.value||300,N=Math.max(1,Math.min(100,+steps.value||10));
+   var R=+rh.value||100,W=+width.value||40,TH=+th.value||5,S=Math.max(10,+spacing.value||75);
+   var sh=H/N,sw=L/N,flatW=W/10,flatT=TH/10;
+   for(var i=0;i<N;i++) box(sw,sh,45,sw*(i+.5),sh*(i+.5),0,stepmat);
+
    var len=Math.sqrt(L*L+H*H),ang=Math.atan2(H,L);
-   var rail=box(len,th/10,th/10,L/2,sh+H/2+R/2,0,metal);rail.rotation.z=ang;
-   for(var j=0;j<5;j++){var x=L*j/4,y=sh+H*j/4+R/2;box(th/10,R,th/10,x,y,0,metal)}
-   cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.5);cam.lookAt(L/2,H/2,0);
+   var railY=sh+H+R;
+   box(len,flatW,flatT,L/2,railY,0,metal,ang);
+
+   var count=Math.max(2,Math.ceil(len/S)+1);
+   for(var j=0;j<count;j++){
+     var t=j/(count-1),x=L*t,y=sh+H*t;
+     box(flatW,R,flatT,x,y+R/2,0,metal);
+   }
+
+   // 시작/끝 상단 손잡이 연결부
+   box(flatW,R,flatT,0,sh+R/2,0,metal);
+   box(flatW,R,flatT,L,H+sh+R/2,0,metal);
+
+   cam.position.set(L*.9,H*.75,Math.max(L,H+R)*1.55);
+   target.set(L/2,(H+R)/2,0);
+   updateCamera();
+   document.getElementById('msg').textContent='완성: '+N+'단 / 기둥 약 '+count+'개 / 기둥 간격 '+S+'cm';
  }
- document.getElementById('make').onclick=make;addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+ 
+ // 간단한 OrbitControls: 외부 라이브러리 없이 마우스/터치 회전, 확대, 이동
+ var target=new T.Vector3(150,100,0), spherical=new T.Spherical();
+ var pointer=new T.Vector2(),last=new T.Vector2(),drag=false,pan=false;
+ function updateCamera(){
+   var off=cam.position.clone().sub(target);
+   spherical.setFromVector3(off);
+   spherical.theta=Math.max(-Math.PI*0.98,Math.min(Math.PI*0.98,spherical.theta));
+   spherical.phi=Math.max(0.08,Math.min(Math.PI-0.08,spherical.phi));
+   off.setFromSpherical(spherical);cam.position.copy(target).add(off);cam.lookAt(target);
+ }
+ function rotate(dx,dy){
+   spherical.setFromVector3(cam.position.clone().sub(target));
+   spherical.theta-=dx*.008;spherical.phi-=dy*.008;
+   spherical.phi=Math.max(.08,Math.min(Math.PI-.08,spherical.phi));
+   var off=new T.Vector3().setFromSpherical(spherical);
+   cam.position.copy(target).add(off);cam.lookAt(target);
+ }
+ function zoom(v){
+   var off=cam.position.clone().sub(target);var d=off.length();
+   d*=v;d=Math.max(40,Math.min(5000,d));off.setLength(d);cam.position.copy(target).add(off);cam.lookAt(target);
+ }
+ function move(dx,dy){
+   var scale=cam.position.distanceTo(target)*.002;
+   var right=new T.Vector3();cam.getWorldDirection(right);
+   right.cross(cam.up).normalize().multiplyScalar(-dx*scale);
+   var up=cam.up.clone().multiplyScalar(dy*scale);
+   target.add(right).add(up);cam.position.add(right).add(up);cam.lookAt(target);
+ }
+ ren.domElement.addEventListener('pointerdown',function(e){
+   drag=true;pan=e.button===2;last.set(e.clientX,e.clientY);ren.domElement.setPointerCapture(e.pointerId)
+ });
+ ren.domElement.addEventListener('pointermove',function(e){
+   if(!drag)return;var dx=e.clientX-last.x,dy=e.clientY-last.y;last.set(e.clientX,e.clientY);
+   if(pan)move(dx,dy);else rotate(dx,dy)
+ });
+ ren.domElement.addEventListener('pointerup',function(){drag=false});
+ ren.domElement.addEventListener('wheel',function(e){e.preventDefault();zoom(e.deltaY>0?1.08:.92)},{passive:false});
+ ren.domElement.addEventListener('contextmenu',function(e){e.preventDefault()});
+ 
+ // 터치: 한 손가락 회전, 두 손가락 확대
+ var touches={};
+ ren.domElement.addEventListener('touchstart',function(e){for(var t of e.changedTouches)touches[t.identifier]={x:t.clientX,y:t.clientY}}, {passive:false});
+ ren.domElement.addEventListener('touchmove',function(e){
+   e.preventDefault();var a=Object.values(touches);if(a.length===1){
+     var t=e.changedTouches[0],dx=t.clientX-a[0].x,dy=t.clientY-a[0].y;rotate(dx,dy);a[0].x=t.clientX;a[0].y=t.clientY;
+   } else if(a.length>=2){
+     var now=e.touches,dist=Math.hypot(now[0].clientX-now[1].clientX,now[0].clientY-now[1].clientY);
+     if(touches._dist){zoom(touches._dist/dist)}touches._dist=dist;
+   }
+ },{passive:false});
+ ren.domElement.addEventListener('touchend',function(e){for(var t of e.changedTouches)delete touches[t.identifier];delete touches._dist},{passive:false});
+
+ function triangleList(){
+   var tris=[];
+   objects.traverse(function(o){
+     if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
+     var g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);var p=g.attributes.position;
+     for(var i=0;i<p.count;i+=3)tris.push([
+       [p.getX(i),p.getY(i),p.getZ(i)],
+       [p.getX(i+1),p.getY(i+1),p.getZ(i+1)],
+       [p.getX(i+2),p.getY(i+2),p.getZ(i+2)]
+     ])
+   });return tris;
+ }
+ function download(name,text,type){
+   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;a.click();
+   setTimeout(function(){URL.revokeObjectURL(a.href)},1000)
+ }
+ function saveSTL(){
+   var out='solid stair\n',tris=triangleList();
+   for(var q of tris){
+     var a=new T.Vector3().fromArray(q[0]),b=new T.Vector3().fromArray(q[1]),c=new T.Vector3().fromArray(q[2]);
+     var n=new T.Vector3().subVectors(b,a).cross(new T.Vector3().subVectors(c,a)).normalize();
+     out+=' facet normal '+n.x+' '+n.y+' '+n.z+'\n  outer loop\n';
+     for(var v of q)out+='   vertex '+v[0]+' '+v[1]+' '+v[2]+'\n';
+     out+='  endloop\n endfacet\n'
+   }out+='endsolid stair\n';download('flat-iron-stair.stl',out,'model/stl')
+ }
+ function saveOBJ(){
+   var out='# Flat iron stair\n',idx=1;
+   objects.traverse(function(o){
+     if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
+     var g=o.geometry.clone();g.applyMatrix4(o.matrixWorld),p=g.attributes.position;
+     for(var i=0;i<p.count;i++)out+='v '+p.getX(i)+' '+p.getY(i)+' '+p.getZ(i)+'\n';
+     for(var j=0;j<p.count;j+=3)out+='f '+(idx+j)+' '+(idx+j+1)+' '+(idx+j+2)+'\n';
+     idx+=p.count
+   });download('flat-iron-stair.obj',out,'text/plain')
+ }
+ document.getElementById('make').onclick=make;
+ document.getElementById('stl').onclick=saveSTL;
+ document.getElementById('obj').onclick=saveOBJ;
+ document.getElementById('reset').onclick=function(){
+   rise.value=180;run.value=300;steps.value=10;rh.value=100;width.value=40;th.value=5;spacing.value=75;make()
+ };
+ addEventListener('resize',function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
  document.getElementById('loading').style.display='none';make();
  (function loop(){requestAnimationFrame(loop);ren.render(scene,cam)})();
 }
